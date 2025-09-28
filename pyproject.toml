@@ -9,9 +9,9 @@ authors = [
     {name = "resemble-ai", email = "engineering@resemble.ai"}
 ]
 dependencies = [
-    "numpy>=1.24.0,<1.26.0",
+    "numpy>=2.2.6",
     "librosa==0.11.0",
-    "s3tokenizer",
+    "s3tokenizer>=0.2.0",
     "torch==2.6.0",
     "torchaudio==2.6.0",
     "transformers==4.46.3",
@@ -19,13 +19,23 @@ dependencies = [
     "resemble-perth==1.0.1",
     "conformer==0.3.2",
     "safetensors==0.5.3",
-    "spacy-pkuseg",
     "pykakasi==2.3.0",
-    "gradio==5.44.1",
-    "russian-text-stresser @ git+https://github.com/Vuizur/add-stress-to-epub",
     "typer>=0.9.0,<0.10.0",  # Pin typer version
+    "pydantic>=1.7.4,<1.8.0", # Pin pydantic version
+    "onnx>=1.19.0",
+    "ml_dtypes>=0.5.0"
+]
+
+[project.optional-dependencies]
+# uv sync --extra gradio
+gradio = [
+    "gradio>=5.44.1",
+]
+# uv sync --extra multi-lingual
+multi-lingual = [
+    "spacy-pkuseg",
     "spacy>=3.6.0,<3.7.0",   # Pin spacy version
-    "pydantic>=1.7.4,<1.8.0" # Pin pydantic version
+    "russian-text-stresser @ git+https://github.com/Vuizur/add-stress-to-epub",
 ]
 
 [tool.uv]
@@ -35,9 +45,16 @@ prerelease = "allow"  # Allow pre-release versions
 Homepage = "https://github.com/resemble-ai/chatterbox"
 Repository = "https://github.com/resemble-ai/chatterbox"
 
+
+
+# --- Build system stuff ----
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+# -- Alt build system
+# [build-system]
+# requires = ["hatchling"]
+# build-backend = "hatchling.build"
