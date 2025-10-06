@@ -91,8 +91,6 @@ class T3(nn.Module):
         cfg_weight: float = 0.0,
     ):
         # prepare input embeddings (skip backbone tranformer embeddings)
-        print("method `prepare_input_embeds`")
-        print(text_tokens.device)
         cond_emb = self.prepare_conditioning(t3_cond)  # (B, len_cond, dim)
         text_emb = self.text_emb(text_tokens)  # (B, len_text, dim)
         if cfg_weight > 0.0:
@@ -243,7 +241,6 @@ class T3(nn.Module):
         if initial_speech_tokens is None:
             initial_speech_tokens = self.hp.start_speech_token * torch.ones_like(text_tokens[:, :1])
 
-        print("TEST 4")
         # Prepare custom input embeds
         embeds, len_cond = self.prepare_input_embeds(
             t3_cond=t3_cond,
@@ -251,8 +248,6 @@ class T3(nn.Module):
             speech_tokens=initial_speech_tokens,
             cfg_weight=cfg_weight,
         )
-        print(embeds.device)
-        print(len_cond.device)
 
         # In order to use the standard HF generate method, we need to extend some methods to inject our custom logic
         # Note the llama-specific logic. Other tfmr types can be added later.
