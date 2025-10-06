@@ -48,9 +48,9 @@ Repository = "https://github.com/resemble-ai/chatterbox"
 
 
 # --- Build system stuff ----
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+# [build-system]
+# requires = ["setuptools>=61.0"]
+# build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
