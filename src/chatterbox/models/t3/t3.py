@@ -94,7 +94,8 @@ class T3(nn.Module):
         cond_emb = self.prepare_conditioning(t3_cond)  # (B, len_cond, dim)
         text_emb = self.text_emb(text_tokens)  # (B, len_text, dim)
         if cfg_weight > 0.0:
-            text_emb[1].zero_()  # CFG uncond
+            # text_emb[1].zero_()
+            text_emb[1] = torch.zeros_like(text_emb[1])  # CFG uncond
 
         speech_emb = self.speech_emb(speech_tokens)  # (B, len_speech, dim)
         if self.hp.input_pos_emb == "learned":
@@ -233,8 +234,9 @@ class T3(nn.Module):
             text_tokens: a 1D (unbatched) or 2D (batched) tensor.
         """
         # Validate / sanitize inputs
-        assert prepend_prompt_speech_tokens is None, "not implemented"
-        _ensure_BOT_EOT(text_tokens, self.hp)
+        if not torch.jit.is_scripting():
+            assert prepend_prompt_speech_tokens is None, "not implemented"
+            _ensure_BOT_EOT(text_tokens, self.hp)
         text_tokens = torch.atleast_2d(text_tokens).to(dtype=torch.long, device=self.device)
 
         # Default initial speech to a single start-of-speech token
@@ -367,8 +369,15 @@ class T3(nn.Module):
             generated_ids = torch.cat([generated_ids, next_token], dim=1)
 
             # Check for EOS token.
-            if next_token.view(-1) == self.hp.stop_speech_token:
-                logger.info(f"✅ EOS token detected! Stopping generation at step {i+1}")
+            # if next_token.view(-1) == self.hp.stop_speech_token:
+            #     logger.info(f"✅ EOS token detected! Stopping generation at step {i+1}")
+            #     break
+            # Replace with trace friendly version
+            is_EOS = (next_token.view(-1) == self.hp.stop_speech_token).all()
+            if not torch.jit.is_scripting():
+                if is_EOS:
+                    logger.info(f"✅ EOS token detected! Stopping generation at step {i+1}")
+            if is_EOS:
                 break
 
             # Get embedding for the new token.

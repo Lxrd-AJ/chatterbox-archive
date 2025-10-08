@@ -88,7 +88,8 @@ class T3HuggingfaceBackend(LlamaPreTrainedModel, GenerationMixin):
         """
         is_large_input = inputs_embeds.size(1) != 1
         has_cache = past_key_values is not None and len(past_key_values) > 0
-        assert not (is_large_input and has_cache)
+        # assert not (is_large_input and has_cache)
+        torch._check(not (is_large_input and has_cache))
         assert return_dict
         assert output_hidden_states
 
