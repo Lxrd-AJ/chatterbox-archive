@@ -306,7 +306,8 @@ class CAMDenseTDNNBlock(torch.nn.ModuleList):
                 config_str=config_str,
                 memory_efficient=memory_efficient,
             )
-            self.add_module("tdnnd%d" % (i + 1), layer)
+            # self.add_module("tdnnd%d" % (i + 1), layer)
+            self.append(layer)
 
     def forward(self, x):
         for layer in self:
