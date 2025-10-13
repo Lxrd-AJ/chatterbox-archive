@@ -226,8 +226,12 @@ class CAMLayer(torch.nn.Module):
         else:
             raise ValueError("Wrong segment pooling type.")
         shape = seg.shape
-        seg = seg.unsqueeze(-1).expand(*shape, seg_len).reshape(*shape[:-1], -1)
-        seg = seg[..., : x.shape[-1]]
+        repeat_dims = [1] * seg.ndim + [seg_len] 
+        # segOriginal = seg.unsqueeze(-1).expand(*shape, seg_len).reshape(*shape[:-1], -1)
+        # print(segOriginal)
+        segPatch = seg.unsqueeze(-1).repeat(*repeat_dims).reshape(*shape[:-1], -1)
+        # print(segPatch)
+        seg = segPatch[..., : x.shape[-1]]
         return seg
 
 
