@@ -230,7 +230,6 @@ class CAMLayer(torch.nn.Module):
         # segOriginal = seg.unsqueeze(-1).expand(*shape, seg_len).reshape(*shape[:-1], -1)
         # print(segOriginal)
         segPatch = seg.unsqueeze(-1).repeat(*repeat_dims).reshape(*shape[:-1], -1)
-        # print(segPatch)
         seg = segPatch[..., : x.shape[-1]]
         return seg
 
