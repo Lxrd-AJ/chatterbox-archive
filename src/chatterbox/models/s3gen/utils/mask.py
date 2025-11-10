@@ -158,9 +158,23 @@ def add_optional_chunk_mask(xs: torch.Tensor,
     else:
         chunk_masks = masks
     assert chunk_masks.dtype == torch.bool
-    if (chunk_masks.sum(dim=-1) == 0).sum().item() != 0:
-        logging.warning('get chunk_masks all false at some timestep, force set to true, make sure they are masked in futuer computation!')
-        chunk_masks[chunk_masks.sum(dim=-1)==0] = True
+    # Fix pytorch export errors
+    # if (chunk_masks.sum(dim=-1) == 0).sum().item() != 0:
+    #     logging.warning('get chunk_masks all false at some timestep, force set to true, make sure they are masked in futuer computation!')
+    #     chunk_masks[chunk_masks.sum(dim=-1)==0] = True
+    # 1. Find all rows where the sum of True values is 0 (i.e., all-False)
+    #    Shape: (B, L)
+    all_false_rows = (chunk_masks.sum(dim=-1) == 0)
+    
+    # 2. Expand the condition to broadcast from (B, L) to (B, L, L)
+    #    Shape: (B, L, 1)
+    condition = all_false_rows.unsqueeze(-1)
+    
+    # 3. Where the condition is True (row was all-false), set to True.
+    #    Otherwise, keep the original value from chunk_masks.
+    #    This replaces the entire if-block and is fully traceable.
+    chunk_masks = torch.where(condition, True, chunk_masks)
+    # --- END OF FIX ---
     return chunk_masks
 
 
