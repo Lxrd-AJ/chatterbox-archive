@@ -204,14 +204,33 @@ class SineGen(torch.nn.Module):
         :return: [B, 1, sample_len]
         """
 
-        F_mat = torch.zeros((f0.size(0), self.harmonic_num + 1, f0.size(-1))).to(f0.device)
-        for i in range(self.harmonic_num + 1):
-            F_mat[:, i: i + 1, :] = f0 * (i + 1) / self.sampling_rate
+        # F_mat = torch.zeros((f0.size(0), self.harmonic_num + 1, f0.size(-1))).to(f0.device)
+        # for i in range(self.harmonic_num + 1):
+        #     F_mat[:, i: i + 1, :] = f0 * (i + 1) / self.sampling_rate
+        # print(torch.norm(F_mat))
+        # 1. Create a multiplier tensor [1, 2, 3, ..., harmonic_num + 1]
+        #    Shape: (1, harmonic_num + 1, 1)
+        multipliers = torch.arange(
+            1, self.harmonic_num + 2, 
+            device=f0.device, 
+            dtype=f0.dtype
+        ).view(1, self.harmonic_num + 1, 1)
+        # 2. Calculate F_mat in one broadcasted operation
+        #    f0 (B, 1, L) * multipliers (1, N+1, 1) -> (B, N+1, L)
+        F_mat = (f0 * multipliers) / self.sampling_rate
 
         theta_mat = 2 * np.pi * (torch.cumsum(F_mat, dim=-1) % 1)
         u_dist = Uniform(low=-np.pi, high=np.pi)
-        phase_vec = u_dist.sample(sample_shape=(f0.size(0), self.harmonic_num + 1, 1)).to(F_mat.device)
-        phase_vec[:, 0, :] = 0
+        # phase_vec = u_dist.sample(sample_shape=(f0.size(0), self.harmonic_num + 1, 1)).to(F_mat.device)
+        # phase_vec[:, 0, :] = 0
+        b = f0.size(0)
+        n = self.harmonic_num
+        # Create the first slice of zeros (shape [B, 1, 1])
+        zeros_slice = torch.zeros((b, 1, 1), device=F_mat.device)
+        # Create the remaining random slices (shape [B, N, 1])
+        random_slice = u_dist.sample(sample_shape=(b, n, 1)).to(F_mat.device)
+        # Concatenate them to build the final tensor
+        phase_vec = torch.cat([zeros_slice, random_slice], dim=1)
 
         # generate sine waveforms
         sine_waves = self.sine_amp * torch.sin(theta_mat + phase_vec)
