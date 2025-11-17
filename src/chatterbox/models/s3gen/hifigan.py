@@ -228,9 +228,13 @@ class SineGen(torch.nn.Module):
         # Create the first slice of zeros (shape [B, 1, 1])
         zeros_slice = torch.zeros((b, 1, 1), device=F_mat.device)
         # Create the remaining random slices (shape [B, N, 1])
-        random_slice = u_dist.sample(sample_shape=(b, n, 1)).to(F_mat.device)
+        # random_slice = u_dist.sample(sample_shape=(b, n, 1)).to(F_mat.device)
+        # print(random_slice.shape)
+        randomVals = torch.rand((b, n, 1), device=F_mat.device, dtype=F_mat.dtype)
+        randomSlice = randomVals * (2 * torch.pi) - torch.pi # (x * (max-min) + min)
+        # print(randomSlice.shape)
         # Concatenate them to build the final tensor
-        phase_vec = torch.cat([zeros_slice, random_slice], dim=1)
+        phase_vec = torch.cat([zeros_slice, randomSlice], dim=1)
 
         # generate sine waveforms
         sine_waves = self.sine_amp * torch.sin(theta_mat + phase_vec)
